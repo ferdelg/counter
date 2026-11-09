@@ -3,7 +3,7 @@ import App from './App.tsx'
 import { Toaster } from '@/components/ui/sonner'
 import { Star } from './components/icons/Star.tsx'
 import { Cross } from './components/icons/Cross.tsx'
-import { useStore } from './lib/store'
+import { hydrationError, useStore } from './lib/store'
 
 const ErrorIconCircle = () => {
 	return (
@@ -59,6 +59,11 @@ export const Root = () => {
 		return (
 			<Splash>
 				<p>Couldn't load your counters.</p>
+				<p className="px-6 text-center text-xs font-medium opacity-70 break-words max-w-full">
+					{hydrationError instanceof Error
+						? hydrationError.message
+						: String(hydrationError ?? 'Unknown error')}
+				</p>
 				<button
 					onClick={load}
 					className="bg-theme-bg-seconday text-theme-text-on-secondary py-2 px-4 rounded-[8px] active:scale-95"

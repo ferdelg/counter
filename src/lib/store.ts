@@ -4,6 +4,9 @@ import { flinshStorage } from './flinshStorage'
 
 export const STORE_KEY = 'count_store_px'
 
+// The error from the last failed load, so the UI can show why.
+export let hydrationError: unknown = null
+
 interface State {
 	list: ListProps
 	editList: (list: ListProps) => void
@@ -47,6 +50,15 @@ export const useStore = create<State>()(
 			// Hydrate explicitly from main.tsx once we know whether the Flinsh
 			// bridge is present, so the right backend is read.
 			skipHydration: true,
+			onRehydrateStorage: () => {
+				hydrationError = null
+				return (_state, error) => {
+					if (error) {
+						hydrationError = error
+						console.error('[counter] could not load saved data', error)
+					}
+				}
+			},
 		}
 	)
 )
