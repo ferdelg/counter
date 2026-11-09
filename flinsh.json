@@ -1,0 +1,10 @@
+{
+  "flinsh": "2",
+  "name": "Counter",
+  "description": "Count anything and track habits. Tap to count; your tallies are saved in Flinsh.",
+  "type": "app",
+  "entrypoint": "dist/index.html",
+  "permissions": [
+    "store:user"
+  ]
+}

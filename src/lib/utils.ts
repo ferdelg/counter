@@ -10,8 +10,13 @@ import { domToPng } from 'modern-screenshot'
 import { schema } from '@/components/Sync/validator'
 import { toast } from 'sonner'
 import { ListProps } from './store'
-import { createIntlSegmenterPolyfill } from 'intl-segmenter-polyfill'
 import satori from 'satori'
+import { MANROPE, dataUriToBytes, loadBytes } from './fonts'
+
+const dataUrlToBlob = (dataUrl: string) => {
+	const type = dataUrl.slice(5, dataUrl.indexOf(';')) || 'image/png'
+	return new Blob([dataUriToBytes(dataUrl)], { type })
+}
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
@@ -24,7 +29,7 @@ export const shareScreenshot = async (element: HTMLElement) => {
 			borderRadius: '14px',
 		},
 	}).then(async (dataUrl) => {
-		const blob = await fetch(dataUrl).then((res) => res.blob())
+		const blob = dataUrlToBlob(dataUrl)
 		const file = new File([blob], 'counter.png', { type: blob.type })
 		const files = [file]
 
@@ -43,7 +48,7 @@ export async function shareImage(dataURI: string, runOnFinish?: () => void) {
 		return
 	}
 
-	const blob = await fetch(dataURI).then((res) => res.blob())
+	const blob = dataUrlToBlob(dataURI)
 	const file = new File([blob], 'counter.png', { type: blob.type })
 	const files = [file]
 
@@ -110,22 +115,13 @@ async function initFonts(): Promise<
 > {
 	if (typeof window === 'undefined') return []
 
-	const [font1, font2, font3, font4, Segmenter] =
+	const [fonts, Segmenter] =
 		window.__resource ||
 		(window.__resource = await Promise.all([
-			fetch('/Manrope-Medium.ttf').then((res) => res.arrayBuffer()),
-			fetch('/Manrope-SemiBold.ttf').then((res) => res.arrayBuffer()),
-			fetch('/Manrope-Bold.ttf').then((res) => res.arrayBuffer()),
-			fetch('/Manrope-ExtraBold.ttf').then((res) => res.arrayBuffer()),
-			!globalThis.Intl || !(globalThis.Intl as any).Segmenter
-				? createIntlSegmenterPolyfill(
-						fetch(
-							new URL(
-								'intl-segmenter-polyfill/dist/break_iterator.wasm',
-								import.meta.url
-							)
-						)
-				  )
+			Promise.all(MANROPE.map((f) => loadBytes(f.src))),
+			(!globalThis.Intl || !(globalThis.Intl as any).Segmenter) &&
+			import.meta.env.MODE !== 'flinsh'
+				? import('./segmenterPolyfill').then((m) => m.loadSegmenterPolyfill())
 				: null,
 		]))
 
@@ -135,32 +131,12 @@ async function initFonts(): Promise<
 		globalThis.Intl.Segmenter = Segmenter
 	}
 
-	return [
-		{
-			name: 'Manrope',
-			style: 'medium',
-			weight: 500,
-			data: font1,
-		},
-		{
-			name: 'Manrope',
-			style: 'semi-bold',
-			weight: 600,
-			data: font2,
-		},
-		{
-			name: 'Manrope',
-			style: 'bold',
-			weight: 700,
-			data: font3,
-		},
-		{
-			name: 'Manrope',
-			style: 'extra-bold',
-			weight: 800,
-			data: font4,
-		},
-	]
+	return MANROPE.map((f, i) => ({
+		name: 'Manrope',
+		style: f.style,
+		weight: f.weight,
+		data: fonts[i],
+	}))
 }
 
 export const svgToPngURI = (svg: string): Promise<string> =>

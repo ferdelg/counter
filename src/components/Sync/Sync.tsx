@@ -6,7 +6,8 @@ import {
 	DrawerTitle,
 } from '../ui/drawer'
 import { toast } from 'sonner'
-import { useStore } from '@/lib/store'
+import { STORE_KEY, useStore } from '@/lib/store'
+import { flinshStorage } from '@/lib/flinshStorage'
 import { uploadData } from '@/lib/utils'
 import { Download } from '../icons/Download'
 import { Upload } from '../icons/Upload'
@@ -20,11 +21,11 @@ export const Sync = ({
 }) => {
 	const editList = useStore((state) => state.editList)
 
-	function downloadData() {
-		const data = localStorage.getItem('count_store_px')
+	async function downloadData() {
+		const data = await flinshStorage.getItem(STORE_KEY)
 		const dataObj = JSON.parse(data || '{}')
 
-		if (data) {
+		if (data && dataObj.state?.list) {
 			const blob = new Blob([JSON.stringify(dataObj.state.list)], {
 				type: 'application/json',
 			})

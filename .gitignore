@@ -8,7 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# Only the Flinsh single-file build (npm run build:flinsh) is committed.
+dist/*
+!dist/index.html
 dist-ssr
 *.local
 

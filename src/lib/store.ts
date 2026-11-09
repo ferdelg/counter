@@ -1,5 +1,8 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { flinshStorage } from './flinshStorage'
+
+export const STORE_KEY = 'count_store_px'
 
 interface State {
 	list: ListProps
@@ -39,7 +42,11 @@ export const useStore = create<State>()(
 			editProfile: (newProfile) => set(() => ({ profile: newProfile })),
 		}),
 		{
-			name: 'count_store_px',
+			name: STORE_KEY,
+			storage: createJSONStorage(() => flinshStorage),
+			// Hydrate explicitly from main.tsx once we know whether the Flinsh
+			// bridge is present, so the right backend is read.
+			skipHydration: true,
 		}
 	)
 )
